@@ -242,15 +242,24 @@
                 NSString *base64 = [data convertToBase64];
                 NSString *suggestedName = item.lastPathComponent;
 
-                NSString *uti =  @"public.image";
+                NSString *uti = @"public.image";
+
+                NSString *registeredType = nil;
+                if ([itemProvider.registeredTypeIdentifiers count] > 0) {
+                    registeredType = itemProvider.registeredTypeIdentifiers[0];
+                } else {
+                    registeredType = uti;
+                }
+
+                NSString *mimeType =  [self mimeTypeFromUti:registeredType];
 
                 NSDictionary *dict = @{
                                            @"text" : self.contentText,
                                            @"data" : base64,
-                                           @"uti": uti,
-                                           @"utis": itemProvider.registeredTypeIdentifiers,
-                                           @"name": suggestedName,
-                                           @"type": [self mimeTypeFromUti:uti]
+                                           @"uti"  : uti,
+                                           @"utis" : itemProvider.registeredTypeIdentifiers,
+                                           @"name" : suggestedName,
+                                           @"type" : mimeType
                                       };
 
                 [items addObject:dict];
