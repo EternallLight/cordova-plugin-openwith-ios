@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-openwith-ios",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Cordova \"Open With\" plugin for iOS and Android",
   "cordova": {
     "id": "com.web-mystery.cordova.openwith-ios",
