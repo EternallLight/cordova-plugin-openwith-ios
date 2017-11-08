@@ -44,7 +44,7 @@ On the Cordova App side, the plugin checks listens for app start or resume event
 Here's the promised one liner:
 
 ```
-cordova plugin add https://github.com/EternallLight/cordova-plugin-openwith-ios.git \
+cordova plugin add cordova-plugin-openwith-ios \
   --variable IOS_URL_SCHEME=cordovaopenwithdemo
 ```
 

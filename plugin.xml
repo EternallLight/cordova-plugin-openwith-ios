@@ -42,7 +42,6 @@ SOFTWARE.
     <!-- ios -->
     <platform name="ios">
         <preference name="IOS_URL_SCHEME" />
-        <preference name="IOS_UNIFORM_TYPE_IDENTIFIER" />
 
         <js-module src="www/openwith.js" name="openwith">
             <clobbers target="cordova.openwith" />
