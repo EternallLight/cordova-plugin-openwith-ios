@@ -25,19 +25,19 @@ SOFTWARE.
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    id="cc.fovea.cordova.openwith"
+    id="com.web-mystery.cordova.openwith-ios"
     version="1.0.0">
 
     <name>OpenWith</name>
-	<description>Cordova "Open With" plugin for iOS and Android</description>
+	<description>Cordova "Open With" plugin for iOS</description>
     <engines>
         <engine name="cordova" version=">=6.0.0" />
     </engines>
-    <repo>https://github.com/j3k0/cordova-plugin-openwith.git</repo>
-    <issue>https://github.com/j3k0/cordova-plugin-openwith/issues</issue>
+    <repo>https://github.com/EternallLight/cordova-plugin-openwith-ios.git</repo>
+    <issue>https://github.com/EternallLight/cordova-plugin-openwith-ios/issues</issue>
 
 	<license>MIT</license>
-    <keywords>cordova,phonegap,openwith,ios,android</keywords>
+    <keywords>cordova,phonegap,openwith,ios</keywords>
 
     <!-- ios -->
     <platform name="ios">
@@ -81,47 +81,6 @@ SOFTWARE.
 
         <framework src="MobileCoreServices.framework" />
     </platform>
-
-    <!-- android -->
-    <platform name="android">
-
-        <preference name="ANDROID_MIME_TYPE" />
-        <preference name="ANDROID_EXTRA_ACTIONS" default=" " />
-
-        <js-module src="www/openwith.js" name="openwith">
-            <clobbers target="cordova.openwith" />
-        </js-module>
-
-        <config-file target="AndroidManifest.xml" parent="/manifest/application/activity">
-            <!-- Open With  -->
-            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-            <intent-filter>
-                <!-- category android:name="android.intent.category.BROWSABLE" / -->
-                <!-- See https://developer.android.com/guide/topics/manifest/data-element.html -->
-                <data android:mimeType="$ANDROID_MIME_TYPE" />
-                <action android:name="android.intent.action.SEND" />
-                $ANDROID_EXTRA_ACTIONS
-                <!-- action android:name="android.intent.action.VIEW" / -->
-                <!-- action android:name="android.intent.action.SEND_MULTIPLE" / -->
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </config-file>
-
-        <!-- Cordova >= 3.0.0 -->
-        <config-file target="res/xml/config.xml" parent="/*">
-            <feature name="OpenWithPlugin">
-				<param name="android-package" value="cc.fovea.openwith.OpenWithPlugin"/>
-			</feature>
-            <preference name="AndroidLaunchMode" value="singleTask"/>
-        </config-file>
-
-        <!-- cordova plugin src files -->
-        <source-file src="src/android/cc/fovea/openwith/OpenWithPlugin.java" target-dir="src/cc/fovea/openwith" />
-        <source-file src="src/android/cc/fovea/openwith/PluginResultSender.java" target-dir="src/cc/fovea/openwith" />
-        <source-file src="src/android/cc/fovea/openwith/Serializer.java" target-dir="src/cc/fovea/openwith" />
-        <source-file src="src/android/cc/fovea/openwith/ByteStreams.java" target-dir="src/cc/fovea/openwith" />
-    </platform>
-
 <!--
 vim: ts=4:sw=4:et
 -->

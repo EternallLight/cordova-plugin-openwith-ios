@@ -1,9 +1,9 @@
 {
-  "name": "cc.fovea.cordova.openwith",
+  "name": "com.web-mystery.cordova.openwith-ios",
   "version": "1.1.0",
   "description": "Cordova \"Open With\" plugin for iOS and Android",
   "cordova": {
-    "id": "cc.fovea.cordova.openwith",
+    "id": "com.web-mystery.cordova.openwith-ios",
     "platforms": [
       "android",
       "ios"
@@ -11,11 +11,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/j3k0/cordova-plugin-openwith.git"
+    "url": "https://github.com/EternallLight/cordova-plugin-openwith-ios.git"
   },
   "keywords": [
     "ecosystem:cordova",
-    "cordova-android",
     "cordova-ios",
     "cordova",
     "phonegap",
@@ -49,6 +48,7 @@
   "# Dependencies required to run tests": "",
   "devDependencies": {
     "eslint": "^4.7.2",
+    "eslint-config-google": "^0.9.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.7.0",
     "eslint-plugin-mocha": "^4.11.0",

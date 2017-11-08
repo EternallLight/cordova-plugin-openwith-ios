@@ -29,7 +29,7 @@
 // THE SOFTWARE.
 //
 
-const PLUGIN_ID = 'cc.fovea.cordova.openwith';
+const PLUGIN_ID = 'com.web-mystery.cordova.openwith-ios';
 const BUNDLE_SUFFIX = '.shareextension';
 
 var fs = require('fs');
@@ -166,9 +166,6 @@ function getPreferences(context, configXml, projectName) {
   }, {
     key: '__URL_SCHEME__',
     value: getCordovaParameter(configXml, 'IOS_URL_SCHEME')
-  }, {
-    key: '__UNIFORM_TYPE_IDENTIFIER__',
-    value: getCordovaParameter(configXml, 'IOS_UNIFORM_TYPE_IDENTIFIER')
   }];
 }
 

@@ -1,15 +1,44 @@
 {
-  "extends": "standard",
-  "plugins": [
-    "standard",
-    "mocha",
-    "promise"
-  ],
-  "rules": {
-    "mocha/no-exclusive-tests": "error"
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "impliedStrict": true
+    }
   },
   "env": {
     "browser": true,
-    "node": true
-  }
+    "serviceworker": true,
+    "commonjs": true,
+    "es6": true
+  },
+  "globals": {
+    "me": true
+  },
+  "rules": {
+    "camelcase": 0,
+    "eqeqeq": 1,
+    "no-extra-parens": 2,
+    "max-len": 0,
+    "valid-jsdoc": 1,
+    "require-jsdoc": 1,
+    "array-bracket-spacing": 1,
+    "block-spacing": 1,
+    "brace-style": 1,
+    "eol-last": 1,
+    "func-call-spacing": 1,
+    "func-name-matching": 1,
+    "no-lonely-if": 1,
+    "operator-assignment": 1,
+    "keyword-spacing": 1,
+    "arrow-body-style": 1,
+    "prefer-spread": 1,
+    "prefer-template": 1,
+    "prefer-arrow-callback": 1,
+    "prefer-rest-params": 0,
+    "template-curly-spacing": 1,
+    "no-invalid-this": 0
+  },
+  "extends": "google",
+  "root": true
 }
