@@ -163,7 +163,7 @@
     if (!isLoggedIn) {
 
         NSString *alertTitle = NSLocalizedString(@"Sharing error", @"Sharing error alert title");
-        NSString *alertMessage = NSLocalizedString(@"You have to be logged in to Thirdlane Connect in order to share items.", @"Sharing error alert message");
+        NSString *alertMessage = NSLocalizedString(@"You have to be logged in in order to share items.", @"Sharing error alert message");
 
         UIAlertController *alert = [UIAlertController
                                      alertControllerWithTitle: alertTitle

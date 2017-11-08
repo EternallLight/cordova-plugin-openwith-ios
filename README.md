@@ -124,6 +124,20 @@ Change the verbosity level of the plugin.
  - `cordova.openwith.INFO` for the default verbosity, log interesting stuff only.
  - `cordova.openwith.WARN` for low verbosity, log only warnings and errors.
  - `cordova.openwith.ERROR` for minimal verbosity, log only errors.
+ 
+### cordova.openwith.setLoggedIn(status)
+
+Change logged in status of the app user. If your app requires the user to be logged in to share the items, you can make use of this by passing true or false values conditionally.
+Otherwise, just call this with true on the startup. The default value is false.
+If the user is not logged in, an alert window will be displayed instead of running the Cordova up. 
+
+For message localisation, open the project in XCode, select the ShareExtension in the navigation panel, and select **File -> New -> File -> (Resource) Strings file**, and name it **Localizable.strings**. Note that you should name it exactly "Localizable.strings", otherwise it wouldn't work. Then open your project settigns (root section in the file navigator on the left), select the Project and add languages on the info tab. Then, move back to your Localizable.strings and add its translations on the right sidebar. Generally the file contents should look like this:
+
+/* Sharing error alert title */
+"Sharing error"="< Your language translation >";
+
+/* Sharing error alert message */
+"You have to be logged in in order to share items."="< Your language translation >"; 
 
 ### cordova.openwith.addHandler(handlerFunction)
 
