@@ -157,7 +157,8 @@
 
     BOOL isLoggedIn = [self.userDefaults boolForKey:@"loggedIn"];
 
-    if (!isLoggedIn) {
+    //if (!isLoggedIn)
+    {
 
         NSString *alertTitle = NSLocalizedString(@"Sharing error", @"Sharing error alert title");
         NSString *alertMessage = NSLocalizedString(@"You have to be logged in in order to share items.", @"Sharing error alert message");
