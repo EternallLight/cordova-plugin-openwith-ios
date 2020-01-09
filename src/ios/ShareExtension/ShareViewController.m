@@ -158,30 +158,6 @@
     [self setup];
     [self debug:@"[viewDidLoad]"];
 
-    BOOL isLoggedIn = [self.userDefaults boolForKey:@"loggedIn"];
-
-    if (!isLoggedIn) {
-
-        NSString *alertTitle = NSLocalizedString(@"Sharing error", @"Sharing error alert title");
-        NSString *alertMessage = NSLocalizedString(@"You have to be logged in in order to share items.", @"Sharing error alert message");
-
-        UIAlertController *alert = [UIAlertController
-                                     alertControllerWithTitle: alertTitle
-                                     message: alertMessage
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *okButton = [UIAlertAction
-                                    actionWithTitle:@"OK"
-                                    style:UIAlertActionStyleDefault
-                                    handler: ^(UIAlertAction * action) {
-                                       // Shut down the extension when the OK button clicked.
-                                       [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
-                                    }];
-        [alert addAction:okButton];
-
-        [self presentViewController:alert animated:YES completion: nil];
-        return;
-    }
-
     __block int remainingAttachments = ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments.count;
     __block NSMutableArray *items = [[NSMutableArray alloc] init];
     __block NSDictionary *results = @{
