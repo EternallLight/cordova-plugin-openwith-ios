@@ -151,6 +151,8 @@ function projectPlistJson(context, projectName) {
 
 function getPreferences(context, configXml, projectName) {
   var plist = projectPlistJson(context, projectName);
+  console.log("CFBundleIdentidier: " + plist.CFBundleIdentifier);
+  console.log("Bundle suffix: " + BUNDLE_SUFFIX);
   return [{
     key: '__DISPLAY_NAME__',
     value: projectName
@@ -222,12 +224,13 @@ module.exports = function (context) {
     var pbxProject = parsePbxProject(context, pbxProjectPath);
 
     var files = getShareExtensionFiles(context);
-    // printShareExtensionFiles(files);
+    printShareExtensionFiles(files);
 
     var preferences = getPreferences(context, configXml, projectName);
+    console.log("Preferences: " + JSON.stringify(preferences));
     files.plist.concat(files.source).forEach(function(file) {
       replacePreferencesInFile(file.path, preferences);
-      // console.log('    Successfully updated ' + file.name);
+      console.log('    Successfully updated ' + file.name);
     });
 
     // Find if the project already contains the target and group
