@@ -6,11 +6,10 @@
 
 This is a bit modified version of [cordova-plugin-openwith](https://github.com/j3k0/cordova-plugin-openwith) by Jean-Christophe Hoelt for iOS.
 
-#### What's different:
+####What's different:
 
 - **Works with several types of shared data** (UTIs). Currently, URLs, text and images are supported. If you would like to remove any of these types, feel free to edit ShareExtension-Info.plist (NSExtensionActivationRule section) after plugin's installation
 - **Support of sharing several photos at once is supported**. By default, the maximum number is 10, but this can be easily edited in the plugin's .plist file
-- **Ability to check if the user is logged in or not in your app**. If not logged in, a native interface alert message will be displayed instead of starting your app.
 - **Does not show native UI with "Post" option**. Having two-step share (enter sharing message and then pick the receiver in the Cordova app) might be a bad user experience, so this plugin opens Cordova application immediately and passes the shared data to it. Thereby, you are expected to implement sharing UI in your Cordova app.
 
 This plugin refers only to iOS, so the Android parts have been cut out both from the plugin and documentation.
@@ -44,8 +43,7 @@ On the Cordova App side, the plugin checks listens for app start or resume event
 Here's the promised one liner:
 
 ```
-cordova plugin add cordova-plugin-openwith-ios \
-  --variable IOS_URL_SCHEME=cordovaopenwithdemo
+cordova plugin add cordova-plugin-openwith-ios --variable IOS_URL_SCHEME=cordovaopenwithdemo
 ```
 
 | variable | example | notes |
@@ -83,9 +81,6 @@ function setupOpenwith() {
 
   // Initialize the plugin
   cordova.openwith.init(initSuccess, initError);
-  
-  // Set logged in status
-  cordova.openwith.setLoggedIn(true);
 
   function initSuccess()  { console.log('init success!'); }
   function initError(err) { console.log('init failed: ' + err); }
@@ -125,20 +120,6 @@ Change the verbosity level of the plugin.
  - `cordova.openwith.WARN` for low verbosity, log only warnings and errors.
  - `cordova.openwith.ERROR` for minimal verbosity, log only errors.
  
-### cordova.openwith.setLoggedIn(status)
-
-Change logged in status of the app user. If your app requires the user to be logged in to share the items, you can make use of this by passing true or false values conditionally.
-Otherwise, just call this with true on the startup. The default value is false.
-If the user is not logged in, an alert window will be displayed instead of running the Cordova up. 
-
-For message localisation, open the project in XCode, select the ShareExtension in the navigation panel, and select **File -> New -> File -> (Resource) Strings file**, and name it **Localizable.strings**. Note that you should name it exactly "Localizable.strings", otherwise it wouldn't work. Then open your project settigns (root section in the file navigator on the left), select the Project and add languages on the info tab. Then, move back to your Localizable.strings and add its translations on the right sidebar. Generally the file contents should look like this:
-
-/* Sharing error alert title */
-"Sharing error"="< Your language translation >";
-
-/* Sharing error alert message */
-"You have to be logged in in order to share items."="< Your language translation >"; 
-
 ### cordova.openwith.addHandler(handlerFunction)
 
 Add an handler function, that will get notified when a file is received.
@@ -173,7 +154,7 @@ Load data for an item. For this modification, it is not necessary,
 Attempt to return the the calling app when sharing is done. Your app will be backgrounded,
 it should be able to finish the upload.
 
-Unfortnately, this is not working on iOS. The user can still select the
+Unfortunately, this is not working on iOS. The user can still select the
 "Back-to-app" button visible on the top left. Make sure your UI shows the user
 that he can now safely go back to what he was doing.
 

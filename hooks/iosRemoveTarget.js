@@ -36,7 +36,7 @@ var fs = require('fs');
 var path = require('path');
 
 function redError(message) {
-    return new Error('"' + PLUGIN_ID + '" \x1b[1m\x1b[31m' + message + '\x1b[0m');
+  return new Error('"' + PLUGIN_ID + '" \x1b[1m\x1b[31m' + message + '\x1b[0m');
 }
 
 // Determine the full path to the app's xcode project file.
@@ -69,12 +69,12 @@ function findXCodeproject(context, callback) {
 // Determine the full path to the ios platform
 function iosFolder(context) {
   return context.opts.cordova.project
-    ? context.opts.cordova.project.root
-    : path.join(context.opts.projectRoot, 'platforms/ios/');
+      ? context.opts.cordova.project.root
+      : path.join(context.opts.projectRoot, 'platforms/ios/');
 }
 
 function parsePbxProject(context, pbxProjectPath) {
-  var xcode = context.requireCordovaModule('xcode');
+  var xcode = require('xcode');
   console.log('    Parsing existing project at location: ' + pbxProjectPath + '...');
   var pbxProject;
   if (context.opts.cordova.project) {
@@ -110,26 +110,6 @@ function projectPlistJson(context, projectName) {
   return plist.parse(fs.readFileSync(path, 'utf8'));
 }
 
-function getPreferences(context, projectName) {
-  var plist = projectPlistJson(context, projectName);
-  return [{
-    key: '__DISPLAY_NAME__',
-    value: projectName
-  }, {
-    key: '__BUNDLE_IDENTIFIER__',
-    value: plist.CFBundleIdentifier + BUNDLE_SUFFIX
-  }, {
-    key: '__BUNDLE_SHORT_VERSION_STRING__',
-    value: plist.CFBundleShortVersionString
-  }, {
-    key: '__BUNDLE_VERSION__',
-    value: plist.CFBundleVersion
-  }, {
-    key: '__URL_KEY__',
-    value: plist.CFBundleIdentifier.replace(/[^a-zA-Z]/g, '').toLowerCase()
-  }];
-}
-
 // Return the list of files in the share extension project, organized by type
 function getShareExtensionFiles(context) {
   var files = {source:[],plist:[],resource:[]};
@@ -145,7 +125,7 @@ console.log('Removing target "' + PLUGIN_ID + '/ShareExtension" to XCode project
 
 module.exports = function (context) {
 
-  var Q = context.requireCordovaModule('q');
+  var Q = require('q');
   var deferral = new Q.defer();
 
   findXCodeproject(context, function(projectFolder, projectName) {

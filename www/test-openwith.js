@@ -90,10 +90,6 @@ describe('openwith', () => {
         });
     });
 
-    describe('.setLoggedIn()', () => {
-        it('is a function', () => expect(openwith.setLoggedIn).to.be.a('function'));
-    });
-
     describe('.numHandlers', () => {
         it('is a function', () => expect(openwith.numHandlers).to.be.a('function'));
         it('returns the number of handlers', () => {
