@@ -57,12 +57,13 @@ After having installed the plugin, with the ios platform in place, 1 operation n
 
  1. open the **xcodeproject** for your application
  1. select the root element of your **project navigator** (the left-side pane)
- 1. select the **target** of your application
- 1. select **capabilities**
- 1. scroll down to **App Groups**
- 1. make sure it's **ON**
- 1. create and activate an **App Group** called: `group.<YOUR_APP_BUNDLE_ID>.shareextension`
- 1. repeat the previous five steps for the **ShareExtension target**.
+ 1. select the **target** of your main application
+ 1. select **Signing & Capabilities**
+ 1. click on **+ Capablity** in left top corner
+ 1. double-click on **App Groups** in the shown pop-up
+ 1. create and activate an **App Group** called: `group.<YOUR_APP_BUNDLE_ID>.shareextension`. You can check the required name 
+ of the bundle in `platforms/ios/ShareExtension/ShareViewController.h` (SHAREEXT_GROUP_IDENTIFIER)
+ 1. repeat the previous steps for the **ShareExtension target**.
 
 You might also have to select a Team for both the App and Share Extension targets, make sure to select the same.
 
