@@ -64,6 +64,11 @@ After having installed the plugin, with the ios platform in place, 1 operation n
  1. create and activate an **App Group** called: `group.<YOUR_APP_BUNDLE_ID>.shareextension`. You can check the required name 
  of the bundle in `platforms/ios/ShareExtension/ShareViewController.h` (SHAREEXT_GROUP_IDENTIFIER)
  1. repeat the previous steps for the **ShareExtension target**.
+ 1. **make sure that both main app and sharing extension have the same iOS version as deployment target**. 
+ Check the General tab -> Deployment info and select the same iOS version for the both targets. 
+ This is a necessary step, otherwise the application will not show up in sharing targets.
+ 1. just in case, check if the main app and extension have different bundle identifiers. If so, made them unique by adding .shareextension suffix to the latter
+ 1. check the troubleshooting section below if you faced any issues, including signing issues
 
 You might also have to select a Team for both the App and Share Extension targets, make sure to select the same.
 
@@ -107,6 +112,26 @@ function setupOpenwith() {
 }
 ```
 
+### Controlling sharing file types
+
+You can manually control which file types you app should accept. For this, you have to edit `platforms/ios/ShareExtension/ShareExtension-Info.plist`
+ after plugin's installation. Scroll down to `NSExtensionActivationRule` <key> tag and take a look on the <dict> tag below.
+ It contains the following keys:
+ 
+ * `NSExtensionActivationSupportsAttachmentsWithMaxCount` {Integer} - The maximum number of attachments that the app extension supports.
+ * `NSExtensionActivationSupportsAttachmentsWithMinCount` {Integer} - The minimum number of attachments that the app extension supports. 
+ Set both parameters to 1 if you want to take only one file per share.  
+ * `NSExtensionActivationSupportsFileWithMaxCount` {Integer} - The maximum number of all types of files that the app extension supports.
+ * `NSExtensionActivationSupportsImageWithMaxCount` {Integer} - The maximum number of image files that the app extension supports. 
+ Remove this key if you do not want to accept images.
+ * `NSExtensionActivationSupportsMovieWithMaxCount` {Integer} - The maximum number of movie files that the app extension supports. 
+ Remove this key if you do not want to accept video files.
+ * `NSExtensionActivationSupportsText` {Integer} - A Boolean value indicating whether the app extension supports text.
+ * `NSExtensionActivationSupportsWebURLWithMaxCount` {Integer} - The maximum number of HTTP URLs that the app extension supports. 
+ Remove this key if you do not want to accept URLs (e.g. coming from Safari share button).
+ 
+ You can also conveniently edit these preferences in Xcode visual editor by clicking on ShareExtension -> ShareExtension-Info.plist in the file navigator.
+ 
 ## API
 
 ### cordova.openwith.setVerbosity(level)
@@ -157,6 +182,20 @@ it should be able to finish the upload.
 Unfortunately, this is not working on iOS. The user can still select the
 "Back-to-app" button visible on the top left. Make sure your UI shows the user
 that he can now safely go back to what he was doing.
+
+## Troubleshooting
+
+Issue: I cannot see my app in share targets
+
+Solution: Check that the both main app and sharing extension have the same iOS version in deploying target (see General -> Deployment info tab in Xcode)
+
+Issue: I get conflicting provisioning settings error when I try to archive to submit an iOS app
+
+Solution: Uncheck "Automatically manage signing", then check it again and reselect the Team. Xcode then fixed whatever was causing the issue on its own
+
+Issue: Physical iPhone device complains on untrusted developer issues
+
+Solution: Open Settings -> General -> Profiles & Device Management. Tap on your app in Developer App section, push on the trust button and confirm the modal.
 
 ## Contribute
 
