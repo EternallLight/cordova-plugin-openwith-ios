@@ -143,11 +143,9 @@
 }
 - (void) viewDidAppear:(BOOL)animated {
     [self.view endEditing:YES];
-}
 
-- (void) viewDidLoad {
     [self setup];
-    [self debug:@"[viewDidLoad]"];
+    [self debug:@"[viewDidAppear]"];
 
     __block int remainingAttachments = ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments.count;
     __block NSMutableArray *items = [[NSMutableArray alloc] init];
