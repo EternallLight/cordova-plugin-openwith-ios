@@ -124,9 +124,7 @@
 }
 
 - (void) openURL:(nonnull NSURL *)url {
-
-    SEL selector = NSSelectorFromString(@"openURL:options:completionHandler:");
-
+    SEL selector = NSSelectorFromString(@"openURL:");
     UIResponder* responder = self;
     while ((responder = [responder nextResponder]) != nil) {
         NSLog(@"responder = %@", responder);
@@ -134,17 +132,10 @@
             NSMethodSignature *methodSignature = [responder methodSignatureForSelector:selector];
             NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 
-            // Arguments
-            NSDictionary<NSString *, id> *options = [NSDictionary dictionary];
-            void (^completion)(BOOL success) = ^void(BOOL success) {
-                NSLog(@"Completions block: %i", success);
-            };
-
             [invocation setTarget: responder];
             [invocation setSelector: selector];
             [invocation setArgument: &url atIndex: 2];
-            [invocation setArgument: &options atIndex:3];
-            [invocation setArgument: &completion atIndex: 4];
+
             [invocation invoke];
             break;
         }
@@ -158,30 +149,6 @@
     [self setup];
     [self debug:@"[viewDidLoad]"];
 
-    BOOL isLoggedIn = [self.userDefaults boolForKey:@"loggedIn"];
-
-    if (!isLoggedIn) {
-
-        NSString *alertTitle = NSLocalizedString(@"Sharing error", @"Sharing error alert title");
-        NSString *alertMessage = NSLocalizedString(@"You have to be logged in in order to share items.", @"Sharing error alert message");
-
-        UIAlertController *alert = [UIAlertController
-                                     alertControllerWithTitle: alertTitle
-                                     message: alertMessage
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *okButton = [UIAlertAction
-                                    actionWithTitle:@"OK"
-                                    style:UIAlertActionStyleDefault
-                                    handler: ^(UIAlertAction * action) {
-                                       // Shut down the extension when the OK button clicked.
-                                       [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
-                                    }];
-        [alert addAction:okButton];
-
-        [self presentViewController:alert animated:YES completion: nil];
-        return;
-    }
-
     __block int remainingAttachments = ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments.count;
     __block NSMutableArray *items = [[NSMutableArray alloc] init];
     __block NSDictionary *results = @{
@@ -192,32 +159,13 @@
 
     for (NSItemProvider* itemProvider in ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments) {
         [self debug:[NSString stringWithFormat:@"item provider registered indentifiers = %@", itemProvider.registeredTypeIdentifiers]];
-        // URL case
-        if ([itemProvider hasItemConformingToTypeIdentifier:@"public.url"]) {
-            [itemProvider loadItemForTypeIdentifier:@"public.url" options:nil completionHandler: ^(NSURL* item, NSError *error) {
-                --remainingAttachments;
-                [self debug:[NSString stringWithFormat:@"public.url = %@", item]];
-                NSString *uti = @"public.url";
-                NSDictionary *dict = @{
 
-                                           @"data" : item.absoluteString,
-                                           @"uti": uti,
-                                           @"utis": itemProvider.registeredTypeIdentifiers,
-                                           @"name": @"",
-                                           @"type": [self mimeTypeFromUti:uti],
-                                      };
-                [items addObject:dict];
-                if (remainingAttachments == 0) {
-                    [self sendResults:results];
-                }
-            }];
-        }
         // TEXT case
-        else if ([itemProvider hasItemConformingToTypeIdentifier:@"public.text"]) {
-            [itemProvider loadItemForTypeIdentifier:@"public.text" options:nil completionHandler: ^(NSString* item, NSError *error) {
+        if ([itemProvider hasItemConformingToTypeIdentifier:@"public.plain-text"]) {
+            [itemProvider loadItemForTypeIdentifier:@"public.plain-text" options:nil completionHandler: ^(NSString* item, NSError *error) {
                 --remainingAttachments;
-                [self debug:[NSString stringWithFormat:@"public.text = %@", item]];
-                NSString *uti = @"public.text";
+                [self debug:[NSString stringWithFormat:@"public.plain-text  = %@", item]];
+                NSString *uti = @"public.plain-text";
                 NSDictionary *dict = @{
                                            @"text" : self.contentText,
                                            @"data" : item,
@@ -232,59 +180,131 @@
                 }
             }];
         }
+
         // IMAGE case
         else if ([itemProvider hasItemConformingToTypeIdentifier:@"public.image"]) {
-            [self debug:[NSString stringWithFormat:@"item provider = %@", itemProvider]];
-
-            [itemProvider loadItemForTypeIdentifier:@"public.image" options:nil completionHandler: ^(NSURL* item, NSError *error) {
+            [itemProvider loadItemForTypeIdentifier:@"public.image" options:nil completionHandler: ^(UIImage *item, NSError *error) {
                 --remainingAttachments;
-                NSData *data = [NSData dataWithContentsOfURL:(NSURL*)item];
-                NSString *base64 = [data convertToBase64];
-                NSString *suggestedName = item.lastPathComponent;
-
+                [self debug:[NSString stringWithFormat:@"public.image  = %@", item]];
                 NSString *uti = @"public.image";
-
-                NSString *registeredType = nil;
-                if ([itemProvider.registeredTypeIdentifiers count] > 0) {
-                    registeredType = itemProvider.registeredTypeIdentifiers[0];
-                } else {
-                    registeredType = uti;
+                NSString *imageName = [[[NSUUID UUID] UUIDString] stringByAppendingString:@".jpg"];
+                NSData *imageData = UIImageJPEGRepresentation (item, 0.7);
+                if (item != nil) {
+                    NSDictionary *dict = @{
+                                           @"text" : self.contentText,
+                                           @"data" : imageData,
+                                           @"uti": uti,
+                                           @"utis": itemProvider.registeredTypeIdentifiers,
+                                           @"name": imageName,
+                                           @"type": [self mimeTypeFromUti:uti],
+                                           };
+                    [items addObject:dict];
                 }
 
-                NSString *mimeType =  [self mimeTypeFromUti:registeredType];
-
-                NSDictionary *dict = @{
-                                           @"text" : self.contentText,
-                                           @"data" : base64,
-                                           @"uti"  : uti,
-                                           @"utis" : itemProvider.registeredTypeIdentifiers,
-                                           @"name" : suggestedName,
-                                           @"type" : mimeType
-                                      };
-
-                [items addObject:dict];
                 if (remainingAttachments == 0) {
                     [self sendResults:results];
                 }
             }];
         }
+
+        // Other files
         else {
-            [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+            __block NSString *uti = itemProvider.registeredTypeIdentifiers[0];
+            [itemProvider loadItemForTypeIdentifier:uti options:nil completionHandler: ^(NSURL* item, NSError *error) {
+                NSString *baseUti = nil;
+                if (UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti, kUTTypeMovie)) {
+                    baseUti = @"public.movie";
+                    // @todo: make resize
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeAudio)) {
+                    baseUti = @"public.audio";
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeURL)) {
+                    baseUti = @"public.url";
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeFileURL)) {
+                    baseUti = @"public.file-url";
+                }
+                else {
+                    baseUti = uti;
+                }
+                [self debug:[NSString stringWithFormat:@"%@ = %@", baseUti, item]];
+
+                __block NSURL *fileUrl = item;
+
+                // Not doing this on the main thread because files may be large
+                dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+                    NSObject *data = nil;
+                    if ([fileUrl.scheme isEqualToString:@"file"]) {
+                        NSURLResponse* response;
+                        NSError* error = nil;
+                        //Capturing response
+                        NSURLRequest* request = [[NSURLRequest alloc] initWithURL:fileUrl];
+                        NSData *fileContent = [NSURLConnection sendSynchronousRequest:request  returningResponse:&response error:&error];
+                        if (fileContent.length > SHAREEXT_MAX_FILE_SIZE) {
+                            NSString *alertTitle = NSLocalizedString(@"FileSizeErrorTitle", @"Sharing error alert title");
+                            NSString *alertMessage = NSLocalizedString(@"FileSizeErrorMessage", @"Sharing error alert message");
+
+                            UIAlertController *alert = [UIAlertController
+                                                        alertControllerWithTitle: alertTitle
+                                                        message: alertMessage
+                                                        preferredStyle:UIAlertControllerStyleAlert];
+                            UIAlertAction *okButton = [UIAlertAction
+                                                       actionWithTitle:@"OK"
+                                                       style:UIAlertActionStyleDefault
+                                                       handler: ^(UIAlertAction * action) {
+                                                           // Shut down the extension when the OK button clicked.
+                                                           [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+                                                       }];
+                            [alert addAction:okButton];
+                            [self presentViewController:alert animated:YES completion: nil];
+                            return;
+                        } else {
+                            data = fileContent;
+                        }
+                    } else {
+                        data = fileUrl.absoluteString;
+                    }
+
+                    if (data != nil) {
+                        NSString *suggestedName = fileUrl.lastPathComponent;
+                        NSDictionary *dict = @{
+                                               @"text" : self.contentText,
+                                               @"data" : data,
+                                               @"uti"  : baseUti,
+                                               @"utis" : itemProvider.registeredTypeIdentifiers,
+                                               @"name" : suggestedName,
+                                               @"type" : [self mimeTypeFromUti:uti],
+                                               };
+                        [items addObject:dict];
+                    }
+
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        --remainingAttachments;
+                        if (remainingAttachments == 0) {
+                            [self sendResults:results];
+                        }
+                    });
+
+                });
+            }];
         }
     }
 }
 
 - (void) sendResults: (NSDictionary*)results {
-    [self.userDefaults setObject:results forKey:@"shared"];
-    [self.userDefaults synchronize];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        [self.userDefaults setObject:results forKey:@"shared"];
+        [self.userDefaults synchronize];
 
-    // Emit a URL that opens the cordova app
-    NSString *url = [NSString stringWithFormat:@"%@://shared", SHAREEXT_URL_SCHEME];
+        // Emit a URL that opens the cordova app
+        NSString *url = [NSString stringWithFormat:@"%@://shared", SHAREEXT_URL_SCHEME];
 
-    [self openURL:[NSURL URLWithString:url]];
+        [self openURL:[NSURL URLWithString:url]];
 
-    // Shut down the extension
-    [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+        // Shut down the extension
+        [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+    });
 }
 
  - (void) didSelectPost {

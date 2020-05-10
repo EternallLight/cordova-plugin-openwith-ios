@@ -24,9 +24,19 @@
         <dict>
             <key>NSExtensionAttributes</key>
             <dict>
+                <key>NSExtensionActivationDictionaryVersion</key>
+                <integer>2</integer>
                 <key>NSExtensionActivationRule</key>
                 <dict>
+                    <key>NSExtensionActivationSupportsAttachmentsWithMaxCount</key>
+                    <integer>10</integer>
+                    <key>NSExtensionActivationSupportsAttachmentsWithMinCount</key>
+                    <integer>1</integer>
+                    <key>NSExtensionActivationSupportsFileWithMaxCount</key>
+                    <integer>10</integer>
                     <key>NSExtensionActivationSupportsImageWithMaxCount</key>
+                    <integer>10</integer>
+                    <key>NSExtensionActivationSupportsMovieWithMaxCount</key>
                     <integer>10</integer>
                     <key>NSExtensionActivationSupportsText</key>
                     <true/>
@@ -35,8 +45,6 @@
                 </dict>
                 <key>NSExtensionActivationUsesStrictMatching</key>
                 <integer>1</integer>
-                <key>NSExtensionActivationDictionaryVersion</key>
-                <integer>2</integer>
             </dict>
             <key>NSExtensionMainStoryboard</key>
             <string>MainInterface</string>
