@@ -99,7 +99,7 @@ function setupOpenwith() {
       var item = intent.items[i];
       console.log('  type: ', item.uti);    // UTI. possible values: public.url, public.text or public.image
       console.log('  type: ', item.type);   // Mime type. For example: "image/jpeg"
-      console.log('  data: ', item.data);   // shared data. For URLs and text - actually the shared URL or text. For image - its base64 string representation.
+      console.log('  data: ', item.data);   // shared data. For text, it is the shared text string. For files, the file's URL on the device file system. You can read it from the webview with cordova-plugin-file or window.Ionic.WebView.convertFileSrc.
       console.log('  text: ', item.text);   // text to share alongside the item. as we don't allow user to enter text in native UI, in most cases this will be empty. However for sharing pages from Safari this might contain the title of the shared page.
       console.log('  name: ', item.name);   // suggested name of the image. For instance: "IMG_0404.JPG"
       console.log('  utis: ', item.utis);   // some optional additional info
@@ -110,6 +110,9 @@ function setupOpenwith() {
   }
 }
 ```
+
+Note that since version 2 the plugin to longer passes base64 image representation in data property. 
+This is done because in recent iOS version the share extension started to crash do to excessive memory usage when sharing multiple images or videos. 
 
 ### Controlling sharing file types
 
