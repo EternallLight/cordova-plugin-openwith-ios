@@ -66,7 +66,8 @@ After having installed the plugin, with the ios platform in place, 1 operation n
  1. **make sure that both main app and sharing extension have the same iOS version as deployment target**. 
  Check the General tab -> Deployment info and select the same iOS version for the both targets. 
  This is a necessary step, otherwise the application will not show up in sharing targets.
- 1. just in case, check if the main app and extension have different bundle identifiers. If so, made them unique by adding .shareextension suffix to the latter
+ 1. just in case, check if the main app and extension have different bundle identifiers. If so, made them unique by adding .shareextension suffix to the latter. The issue might persist during each `cordova prepare` run – it is because currently cordova does not differentiate between main app and app extension and replaces the bundle identifier in both folders. You can avoid this by running the app from xcode – it'd also save you pretty much time, because `cordova run ios` takes much longer. You can also set up you application build to copy the built files from `/www` to `/platfforms/ios/www` so that xcode always have the fresh web application assets. 
+ 
  1. check the troubleshooting section below if you faced any issues, including signing issues
 
 You might also have to select a Team for both the App and Share Extension targets, make sure to select the same.
