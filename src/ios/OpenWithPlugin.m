@@ -179,19 +179,41 @@ static NSDictionary* launchOptions = nil;
     NSArray *items = dict[@"items"];
     self.backURL = dict[@"backURL"];
 
+    NSArray *processedItems = [self processSharedItems:items];
+
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{
         @"text": text,
-        @"items": items
+        @"items": processedItems
     }];
+
     pluginResult.keepCallback = [NSNumber numberWithBool:YES];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:self.handlerCallback];
 }
 
-- (void) setLoggedIn:(CDVInvokedUrlCommand*)command {
+- (NSMutableArray*) processSharedItems:(NSArray*)items {
+    NSMutableArray *processedItems = [[NSMutableArray alloc] init];
+    for (NSDictionary *item in items) {
+        NSMutableDictionary *processedItem = [NSMutableDictionary dictionaryWithDictionary:item];
+        NSData *content = item[@"data"];
+        NSString *fileName = item[@"name"];
+        if ([item[@"data"] isKindOfClass:[NSData class]]) {
+            // If shared data, save it to the temp directory and return the saved file path to cordova.
+            NSURL *tempDirURL = [NSURL fileURLWithPath:NSTemporaryDirectory() isDirectory:YES];
+            NSURL *fileURL = [tempDirURL URLByAppendingPathComponent:fileName];
+            [content writeToFile:[fileURL path] atomically:YES];
+            NSLog(@"Saved file URL: %@", [fileURL path]);
+            [processedItem setValue:fileURL.absoluteString forKeyPath:@"data"];
+        }
+        [processedItems addObject:processedItem];
+    }
+    return processedItems;
+}
+
+- (void) setLoggedInStatus:(CDVInvokedUrlCommand*)command {
     BOOL value = [command argumentAtIndex:0];
     [self.userDefaults setBool:value forKey:@"loggedIn"];
     [self.userDefaults synchronize];
-    [self debug:[NSString stringWithFormat:@"[setLoggedIn] %d", value]];
+    [self debug:[NSString stringWithFormat:@"[setLoggedInStatus] %d", value]];
     CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }

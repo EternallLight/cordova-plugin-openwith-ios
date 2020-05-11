@@ -6,16 +6,13 @@
 
 This is a bit modified version of [cordova-plugin-openwith](https://github.com/j3k0/cordova-plugin-openwith) by Jean-Christophe Hoelt for iOS.
 
-#### What's different:
+#### Differences:
 
 - **Works with several types of shared data** (UTIs). Currently, URLs, text and images are supported. If you would like to remove any of these types, feel free to edit ShareExtension-Info.plist (NSExtensionActivationRule section) after plugin's installation
 - **Support of sharing several photos at once is supported**. By default, the maximum number is 10, but this can be easily edited in the plugin's .plist file
-- **Ability to check if the user is logged in or not in your app**. If not logged in, a native interface alert message will be displayed instead of starting your app.
 - **Does not show native UI with "Post" option**. Having two-step share (enter sharing message and then pick the receiver in the Cordova app) might be a bad user experience, so this plugin opens Cordova application immediately and passes the shared data to it. Thereby, you are expected to implement sharing UI in your Cordova app.
 
 This plugin refers only to iOS, so the Android parts have been cut out both from the plugin and documentation.
-
-You'd like your app to be listed in the **Send to...** section for certain types of files, on both **Android** and **iOS**? This is THE plugin! No need to meddle into Android's manifests and iOS's plist files, it's (almost) all managed for you by a no brainer one liner installation command.
 
 ## Table of Contents
 
@@ -44,13 +41,12 @@ On the Cordova App side, the plugin checks listens for app start or resume event
 Here's the promised one liner:
 
 ```
-cordova plugin add cordova-plugin-openwith-ios \
-  --variable IOS_URL_SCHEME=cordovaopenwithdemo
+cordova plugin add cordova-plugin-openwith-ios --variable IOS_URL_SCHEME=cordovaopenwithdemo
 ```
 
 | variable | example | notes |
 |---|---|---|
-| `IOS_URL_SCHEME` | uniquelonglowercase | **iOS only** Any random long string of lowercase alphabetical characters |
+| `IOS_URL_SCHEME` | uniquelonglowercase | Any random long string of lowercase alphabetical characters |
 
 It shouldn't be too hard. But just in case, Jean-Christophe Hoelt [posted a screencast of it](https://youtu.be/eaE4m_xO1mg).
 
@@ -60,12 +56,19 @@ After having installed the plugin, with the ios platform in place, 1 operation n
 
  1. open the **xcodeproject** for your application
  1. select the root element of your **project navigator** (the left-side pane)
- 1. select the **target** of your application
- 1. select **capabilities**
- 1. scroll down to **App Groups**
- 1. make sure it's **ON**
- 1. create and activate an **App Group** called: `group.<YOUR_APP_BUNDLE_ID>.shareextension`
- 1. repeat the previous five steps for the **ShareExtension target**.
+ 1. select the **target** of your main application
+ 1. select **Signing & Capabilities**
+ 1. click on **+ Capablity** in left top corner
+ 1. double-click on **App Groups** in the shown pop-up
+ 1. create and activate an **App Group** called: `group.<YOUR_APP_BUNDLE_ID>.shareextension`. You can check the required name 
+ of the bundle in `platforms/ios/ShareExtension/ShareViewController.h` (SHAREEXT_GROUP_IDENTIFIER)
+ 1. repeat the previous steps for the **ShareExtension target**.
+ 1. **make sure that both main app and sharing extension have the same iOS version as deployment target**. 
+ Check the General tab -> Deployment info and select the same iOS version for the both targets. 
+ This is a necessary step, otherwise the application will not show up in sharing targets.
+ 1. just in case, check if the main app and extension have different bundle identifiers. If so, made them unique by adding .shareextension suffix to the latter. The issue might persist during each `cordova prepare` run – it is because currently cordova does not differentiate between main app and app extension and replaces the bundle identifier in both folders. You can avoid this by running the app from xcode – it'd also save you pretty much time, because `cordova run ios` takes much longer. You can also set up you application build to copy the built files from `/www` to `/platfforms/ios/www` so that xcode always have the fresh web application assets. 
+ 
+ 1. check the troubleshooting section below if you faced any issues, including signing issues
 
 You might also have to select a Team for both the App and Share Extension targets, make sure to select the same.
 
@@ -83,9 +86,6 @@ function setupOpenwith() {
 
   // Initialize the plugin
   cordova.openwith.init(initSuccess, initError);
-  
-  // Set logged in status
-  cordova.openwith.setLoggedIn(true);
 
   function initSuccess()  { console.log('init success!'); }
   function initError(err) { console.log('init failed: ' + err); }
@@ -100,7 +100,7 @@ function setupOpenwith() {
       var item = intent.items[i];
       console.log('  type: ', item.uti);    // UTI. possible values: public.url, public.text or public.image
       console.log('  type: ', item.type);   // Mime type. For example: "image/jpeg"
-      console.log('  data: ', item.data);   // shared data. For URLs and text - actually the shared URL or text. For image - its base64 string representation.
+      console.log('  data: ', item.data);   // shared data. For text, it is the shared text string. For files, the file's URL on the device file system. You can read it from the webview with cordova-plugin-file or window.Ionic.WebView.convertFileSrc.
       console.log('  text: ', item.text);   // text to share alongside the item. as we don't allow user to enter text in native UI, in most cases this will be empty. However for sharing pages from Safari this might contain the title of the shared page.
       console.log('  name: ', item.name);   // suggested name of the image. For instance: "IMG_0404.JPG"
       console.log('  utis: ', item.utis);   // some optional additional info
@@ -112,6 +112,29 @@ function setupOpenwith() {
 }
 ```
 
+Note that since version 2 the plugin to longer passes base64 image representation in data property. 
+This is done because in recent iOS version the share extension started to crash do to excessive memory usage when sharing multiple images or videos. 
+
+### Controlling sharing file types
+
+You can manually control which file types you app should accept. For this, you have to edit `platforms/ios/ShareExtension/ShareExtension-Info.plist`
+ after plugin's installation. Scroll down to `NSExtensionActivationRule` <key> tag and take a look on the <dict> tag below.
+ It contains the following keys:
+ 
+ * `NSExtensionActivationSupportsAttachmentsWithMaxCount` {Integer} - The maximum number of attachments that the app extension supports.
+ * `NSExtensionActivationSupportsAttachmentsWithMinCount` {Integer} - The minimum number of attachments that the app extension supports. 
+ Set both parameters to 1 if you want to take only one file per share.  
+ * `NSExtensionActivationSupportsFileWithMaxCount` {Integer} - The maximum number of all types of files that the app extension supports.
+ * `NSExtensionActivationSupportsImageWithMaxCount` {Integer} - The maximum number of image files that the app extension supports. 
+ Remove this key if you do not want to accept images.
+ * `NSExtensionActivationSupportsMovieWithMaxCount` {Integer} - The maximum number of movie files that the app extension supports. 
+ Remove this key if you do not want to accept video files.
+ * `NSExtensionActivationSupportsText` {Integer} - A Boolean value indicating whether the app extension supports text.
+ * `NSExtensionActivationSupportsWebURLWithMaxCount` {Integer} - The maximum number of HTTP URLs that the app extension supports. 
+ Remove this key if you do not want to accept URLs (e.g. coming from Safari share button).
+ 
+ You can also conveniently edit these preferences in Xcode visual editor by clicking on ShareExtension -> ShareExtension-Info.plist in the file navigator.
+ 
 ## API
 
 ### cordova.openwith.setVerbosity(level)
@@ -125,20 +148,6 @@ Change the verbosity level of the plugin.
  - `cordova.openwith.WARN` for low verbosity, log only warnings and errors.
  - `cordova.openwith.ERROR` for minimal verbosity, log only errors.
  
-### cordova.openwith.setLoggedIn(status)
-
-Change logged in status of the app user. If your app requires the user to be logged in to share the items, you can make use of this by passing true or false values conditionally.
-Otherwise, just call this with true on the startup. The default value is false.
-If the user is not logged in, an alert window will be displayed instead of running the Cordova up. 
-
-For message localisation, open the project in XCode, select the ShareExtension in the navigation panel, and select **File -> New -> File -> (Resource) Strings file**, and name it **Localizable.strings**. Note that you should name it exactly "Localizable.strings", otherwise it wouldn't work. Then open your project settigns (root section in the file navigator on the left), select the Project and add languages on the info tab. Then, move back to your Localizable.strings and add its translations on the right sidebar. Generally the file contents should look like this:
-
-/* Sharing error alert title */
-"Sharing error"="< Your language translation >";
-
-/* Sharing error alert message */
-"You have to be logged in in order to share items."="< Your language translation >"; 
-
 ### cordova.openwith.addHandler(handlerFunction)
 
 Add an handler function, that will get notified when a file is received.
@@ -161,6 +170,7 @@ A data descriptor describe one file. It is a javascript object with the followin
  - `uti`: Unique Type Identifier. possible values: public.url, public.text or public.image
  - `type`: Mime type. For example: "image/jpeg"
  - `text`: test description of the share, generally empty
+ - `data`: the shared text or the path the shared file 
  - `name`: suggested file name
  - `utis`: list of UTIs the file belongs to.
 
@@ -173,9 +183,23 @@ Load data for an item. For this modification, it is not necessary,
 Attempt to return the the calling app when sharing is done. Your app will be backgrounded,
 it should be able to finish the upload.
 
-Unfortnately, this is not working on iOS. The user can still select the
+Unfortunately, this is not working on iOS. The user can still select the
 "Back-to-app" button visible on the top left. Make sure your UI shows the user
 that he can now safely go back to what he was doing.
+
+## Troubleshooting
+
+Issue: I cannot see my app in share targets
+
+Solution: Check that the both main app and sharing extension have the same iOS version in deploying target (see General -> Deployment info tab in Xcode)
+
+Issue: I get conflicting provisioning settings error when I try to archive to submit an iOS app
+
+Solution: Uncheck "Automatically manage signing", then check it again and reselect the Team. Xcode then fixed whatever was causing the issue on its own
+
+Issue: Physical iPhone device complains on untrusted developer issues
+
+Solution: Open Settings -> General -> Profiles & Device Management. Tap on your app in Developer App section, push on the trust button and confirm the modal.
 
 ## Contribute
 

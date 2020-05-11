@@ -124,9 +124,7 @@
 }
 
 - (void) openURL:(nonnull NSURL *)url {
-
-    SEL selector = NSSelectorFromString(@"openURL:options:completionHandler:");
-
+    SEL selector = NSSelectorFromString(@"openURL:");
     UIResponder* responder = self;
     while ((responder = [responder nextResponder]) != nil) {
         NSLog(@"responder = %@", responder);
@@ -134,17 +132,10 @@
             NSMethodSignature *methodSignature = [responder methodSignatureForSelector:selector];
             NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
 
-            // Arguments
-            NSDictionary<NSString *, id> *options = [NSDictionary dictionary];
-            void (^completion)(BOOL success) = ^void(BOOL success) {
-                NSLog(@"Completions block: %i", success);
-            };
-
             [invocation setTarget: responder];
             [invocation setSelector: selector];
             [invocation setArgument: &url atIndex: 2];
-            [invocation setArgument: &options atIndex:3];
-            [invocation setArgument: &completion atIndex: 4];
+
             [invocation invoke];
             break;
         }
@@ -152,144 +143,136 @@
 }
 - (void) viewDidAppear:(BOOL)animated {
     [self.view endEditing:YES];
-}
 
-- (void) viewDidLoad {
     [self setup];
-    [self debug:@"[viewDidLoad]"];
-
-    BOOL isLoggedIn = [self.userDefaults boolForKey:@"loggedIn"];
-
-    if (!isLoggedIn) {
-
-        NSString *alertTitle = NSLocalizedString(@"Sharing error", @"Sharing error alert title");
-        NSString *alertMessage = NSLocalizedString(@"You have to be logged in in order to share items.", @"Sharing error alert message");
-
-        UIAlertController *alert = [UIAlertController
-                                     alertControllerWithTitle: alertTitle
-                                     message: alertMessage
-                                     preferredStyle:UIAlertControllerStyleAlert];
-        UIAlertAction *okButton = [UIAlertAction
-                                    actionWithTitle:@"OK"
-                                    style:UIAlertActionStyleDefault
-                                    handler: ^(UIAlertAction * action) {
-                                       // Shut down the extension when the OK button clicked.
-                                       [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
-                                    }];
-        [alert addAction:okButton];
-
-        [self presentViewController:alert animated:YES completion: nil];
-        return;
-    }
+    [self debug:@"[viewDidAppear]"];
 
     __block int remainingAttachments = ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments.count;
     __block NSMutableArray *items = [[NSMutableArray alloc] init];
     __block NSDictionary *results = @{
-                                          @"text" : self.contentText,
-                                          @"backURL": self.backURL != nil ? self.backURL : @"",
-                                          @"items": items,
-                                      };
+        @"text" : self.contentText,
+        @"backURL": self.backURL != nil ? self.backURL : @"",
+        @"items": items,
+    };
 
     for (NSItemProvider* itemProvider in ((NSExtensionItem*)self.extensionContext.inputItems[0]).attachments) {
         [self debug:[NSString stringWithFormat:@"item provider registered indentifiers = %@", itemProvider.registeredTypeIdentifiers]];
-        // URL case
-        if ([itemProvider hasItemConformingToTypeIdentifier:@"public.url"]) {
-            [itemProvider loadItemForTypeIdentifier:@"public.url" options:nil completionHandler: ^(NSURL* item, NSError *error) {
-                --remainingAttachments;
-                [self debug:[NSString stringWithFormat:@"public.url = %@", item]];
-                NSString *uti = @"public.url";
-                NSDictionary *dict = @{
 
-                                           @"data" : item.absoluteString,
-                                           @"uti": uti,
-                                           @"utis": itemProvider.registeredTypeIdentifiers,
-                                           @"name": @"",
-                                           @"type": [self mimeTypeFromUti:uti],
-                                      };
-                [items addObject:dict];
-                if (remainingAttachments == 0) {
-                    [self sendResults:results];
-                }
-            }];
-        }
         // TEXT case
-        else if ([itemProvider hasItemConformingToTypeIdentifier:@"public.text"]) {
+        if ([itemProvider hasItemConformingToTypeIdentifier:@"public.text"]) {
             [itemProvider loadItemForTypeIdentifier:@"public.text" options:nil completionHandler: ^(NSString* item, NSError *error) {
                 --remainingAttachments;
-                [self debug:[NSString stringWithFormat:@"public.text = %@", item]];
-                NSString *uti = @"public.text";
+                [self debug:[NSString stringWithFormat:@"public.text  = %@", item]];
+                NSString *uti = @"public.plain-text";
                 NSDictionary *dict = @{
-                                           @"text" : self.contentText,
-                                           @"data" : item,
-                                           @"uti": uti,
-                                           @"utis": itemProvider.registeredTypeIdentifiers,
-                                           @"name": @"",
-                                           @"type": [self mimeTypeFromUti:uti],
-                                       };
+                    @"text" : self.contentText,
+                    @"data" : item,
+                    @"uti": uti,
+                    @"utis": itemProvider.registeredTypeIdentifiers,
+                    @"name": @"",
+                    @"type": [self mimeTypeFromUti:uti],
+                };
                 [items addObject:dict];
                 if (remainingAttachments == 0) {
                     [self sendResults:results];
                 }
             }];
         }
+
         // IMAGE case
         else if ([itemProvider hasItemConformingToTypeIdentifier:@"public.image"]) {
-            [self debug:[NSString stringWithFormat:@"item provider = %@", itemProvider]];
-
-            [itemProvider loadItemForTypeIdentifier:@"public.image" options:nil completionHandler: ^(NSURL* item, NSError *error) {
+            [itemProvider loadItemForTypeIdentifier:@"public.image" options:nil completionHandler: ^(NSURL *item, NSError *error) {
                 --remainingAttachments;
-                NSData *data = [NSData dataWithContentsOfURL:(NSURL*)item];
-                NSString *base64 = [data convertToBase64];
-                NSString *suggestedName = item.lastPathComponent;
-
-                NSString *uti = @"public.image";
-
-                NSString *registeredType = nil;
-                if ([itemProvider.registeredTypeIdentifiers count] > 0) {
-                    registeredType = itemProvider.registeredTypeIdentifiers[0];
-                } else {
-                    registeredType = uti;
+                if (item != nil) {
+                    [self debug:[NSString stringWithFormat:@"public.image  = %@", item]];
+                    NSString *uti = @"public.image";
+                    NSString *imageName = [[item path] lastPathComponent];
+                    NSDictionary *dict = @{
+                        @"text" : self.contentText,
+                        @"data" : item.absoluteString,
+                        @"uti": uti,
+                        @"utis": itemProvider.registeredTypeIdentifiers,
+                        @"name": imageName,
+                        @"type": [self mimeTypeFromUti:uti],
+                    };
+                    [items addObject:dict];
                 }
 
-                NSString *mimeType =  [self mimeTypeFromUti:registeredType];
-
-                NSDictionary *dict = @{
-                                           @"text" : self.contentText,
-                                           @"data" : base64,
-                                           @"uti"  : uti,
-                                           @"utis" : itemProvider.registeredTypeIdentifiers,
-                                           @"name" : suggestedName,
-                                           @"type" : mimeType
-                                      };
-
-                [items addObject:dict];
                 if (remainingAttachments == 0) {
                     [self sendResults:results];
                 }
             }];
         }
+
+        // Other files
         else {
-            [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+            __block NSString *uti = itemProvider.registeredTypeIdentifiers[0];
+            [itemProvider loadItemForTypeIdentifier:uti options:nil completionHandler: ^(id<NSSecureCoding> item, NSError *error) {
+
+                NSString *baseUti = nil;
+                if (
+                    UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti, kUTTypeAudiovisualContent)
+                    ) {
+                    baseUti = @"public.audiovisual-content";
+                    // @todo: make resize
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeAudio)) {
+                    baseUti = @"public.audio";
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeURL)) {
+                    baseUti = @"public.url";
+                }
+                else if ( UTTypeConformsTo((__bridge CFStringRef _Nonnull)uti,kUTTypeFileURL)) {
+                    baseUti = @"public.file-url";
+                }
+                else {
+                    baseUti = uti;
+                }
+                [self debug:[NSString stringWithFormat:@"%@ = %@", baseUti, item]];
+
+                __block NSURL *fileUrl = item;
+
+                if (fileUrl != nil) {
+                    NSString *data = fileUrl.absoluteString;
+                    NSString *suggestedName = fileUrl.lastPathComponent;
+                    NSDictionary *dict = @{
+                        @"text" : self.contentText,
+                        @"data" : data,
+                        @"uti"  : baseUti,
+                        @"utis" : itemProvider.registeredTypeIdentifiers,
+                        @"name" : suggestedName,
+                        @"type" : [self mimeTypeFromUti:uti],
+                    };
+                    [items addObject:dict];
+                }
+
+                --remainingAttachments;
+                if (remainingAttachments == 0) {
+                    [self sendResults:results];
+                }
+            }];
         }
     }
 }
 
 - (void) sendResults: (NSDictionary*)results {
-    [self.userDefaults setObject:results forKey:@"shared"];
-    [self.userDefaults synchronize];
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+        [self.userDefaults setObject:results forKey:@"shared"];
+        [self.userDefaults synchronize];
 
-    // Emit a URL that opens the cordova app
-    NSString *url = [NSString stringWithFormat:@"%@://shared", SHAREEXT_URL_SCHEME];
+        // Emit a URL that opens the cordova app
+        NSString *url = [NSString stringWithFormat:@"%@://shared", SHAREEXT_URL_SCHEME];
 
-    [self openURL:[NSURL URLWithString:url]];
+        [self openURL:[NSURL URLWithString:url]];
 
-    // Shut down the extension
-    [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+        // Shut down the extension
+        [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+    });
 }
 
- - (void) didSelectPost {
-     [self debug:@"[didSelectPost]"];
- }
+- (void) didSelectPost {
+    [self debug:@"[didSelectPost]"];
+}
 
 - (NSArray*) configurationItems {
     // To add configuration options via table cells at the bottom of the sheet, return an array of SLComposeSheetConfigurationItem here.

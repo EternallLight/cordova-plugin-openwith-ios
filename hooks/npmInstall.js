@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-const PLUGIN_ID = "com.web-mystery.cordova.openwith-ios";
+const PLUGIN_ID = "cordova-plugin-openwith-ios";
 
 module.exports = function (context) {
-    var child_process = context.requireCordovaModule('child_process');
-    var deferral = context.requireCordovaModule('q').defer();
+    var child_process = require('child_process');
+    var deferral = require('q').defer();
 
     console.log('Installing "' + PLUGIN_ID + '" dependencies');
     child_process.exec('npm install --production', {cwd:__dirname}, function (error) {
