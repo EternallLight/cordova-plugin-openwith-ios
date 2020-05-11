@@ -170,6 +170,7 @@ A data descriptor describe one file. It is a javascript object with the followin
  - `uti`: Unique Type Identifier. possible values: public.url, public.text or public.image
  - `type`: Mime type. For example: "image/jpeg"
  - `text`: test description of the share, generally empty
+ - `data`: the shared text or the path the shared file 
  - `name`: suggested file name
  - `utis`: list of UTIs the file belongs to.
 
