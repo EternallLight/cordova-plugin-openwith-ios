@@ -149,7 +149,6 @@ function getPreferences(context, configXml, projectName) {
     const config =  new DOMParser().parseFromString(configXml, 'text/xml');
     const appId =  config.documentElement.getAttribute('ios-CFBundleIdentifier') || config.documentElement.getAttribute('id');
     const urlScheme = getCordovaParameter(configXml, 'IOS_URL_SCHEME');
-    const maxFileSize =  getCordovaParameter(configXml, 'MAX_FILE_SIZE') || 20971520;
 
     if (!urlScheme || urlScheme === 'null') {
         throw new Error('IOS_URL_SCHEME is missing. Add `--variable IOS_URL_SCHEME=<scheme>` to your install command');
@@ -170,9 +169,6 @@ function getPreferences(context, configXml, projectName) {
     }, {
         key: '__URL_SCHEME__',
         value: urlScheme,
-    }, {
-        key: '__MAX_FILE_SIZE__',
-        value: maxFileSize,
     }];
 }
 

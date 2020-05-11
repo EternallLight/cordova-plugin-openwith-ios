@@ -47,7 +47,6 @@ cordova plugin add cordova-plugin-openwith-ios --variable IOS_URL_SCHEME=cordova
 | variable | example | notes |
 |---|---|---|
 | `IOS_URL_SCHEME` | uniquelonglowercase | Any random long string of lowercase alphabetical characters |
-| `SHAREEXT_MAX_FILE_SIZE` | 20971520 | Maximum file size of shared files to accept (in bytes). Default: 20 MB (20971520 bytes) |
 
 It shouldn't be too hard. But just in case, Jean-Christophe Hoelt [posted a screencast of it](https://youtu.be/eaE4m_xO1mg).
 
